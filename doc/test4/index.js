@@ -61,58 +61,104 @@ class Point
 {
 	constructor(x, y, z)
 	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		this._x = x;
+		this._y = y;
+		this._z = z;
+		this._abs = null;
+		this._len = null;
 	}
 	
 	add(p)
 	{
-		return new Point(p.x + this.x, p.y + this.y, p.z + this.z);
+		return new Point(p._x + this._x, p._y + this._y, p._z + this._z);
 	}
 
 	iadd(p)
 	{
-		this.x += p.x;
-		this.y += p.y;
-		this.z += p.z;
+		this._x += p._x;
+		this._y += p._y;
+		this._z += p._z;
+		this._abs = null;
+		this._len = null;
 		return this;
 	}
 
 	sub(p)
 	{
-		return new Point(this.x - p.x, this.y - p.y, this.z - p.z);
+		return new Point(this._x - p._x, this._y - p._y, this._z - p._z);
 	}
 
 	isub(p)
 	{
-		this.x -= p.x;
-		this.y -= p.y;
-		this.z -= p.z;
+		this._x -= p._x;
+		this._y -= p._y;
+		this._z -= p._z;
+		this._abs = null;
+		this._len = null;
 		return this;
 	}
 
-	abs()
+	mul(factor)
 	{
-		return this.x * this.x + this.y * this.y + this.z * this.z;
+		return new Point(this._x * factor, this._y * factor, this._z * factor);
+	}
+
+	imul(factor)
+	{
+		this._x *= factor;
+		this._y *= factor;
+		this._z *= factor;
+		this._abs = null;
+		this._len = null;
+		return this;
+	}
+
+	get abs()
+	{
+		if (this._abs == null)
+			this._abs = this.__get_abs();
+		return this._abs;
+	}
+
+	get len()
+	{
+		if (this._len == null)
+			this._len = Math.sqrt(this.abs);
+		return this._len;
 	}
 
 	dot(p)
 	{
-		return this.x * p.x + this.y * p.y + this.z * p.z;
+		return this._x * p._x + this._y * p._y + this._z * p._z;
 	}
 
 	normalize()
 	{
-		let len = Math.sqrt(this.abs());
-		this.x /= len;
-		this.y /= len;
-		this.z /= len;
+		let l = this.len;
+		this._x /= l;
+		this._y /= l;
+		this._z /= l;
+		this._abs = null;
+		this._len = null;
+		return this;
+	}
+
+	clone()
+	{
+		let ret = new Point(this._x, this._y, this._z);
+		ret._abs = this._abs;
+		ret._len = this._len;
+		return ret;
 	}
 
 	str()
 	{
-		return `(${this.x}, ${this.y}, ${this.z})`;
+		return `(${this._x}, ${this._y}, ${this._z})`;
+	}
+
+	__get_abs()
+	{
+		return this._x * this._x + this._y * this._y + this._z * this._z;
 	}
 }
 
@@ -123,6 +169,11 @@ class Color
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
+	}
+
+	mul(factor)
+	{
+		return new Color(this.red * factor, this.green * factor, this.blue * factor);
 	}
 
 	static Black = new Color(0, 0, 0);
@@ -137,6 +188,7 @@ class Sphere
 		this.color = color;
 
 		this._r2 = radius * radius;
+		this._1r = 1 / radius;
 	}
 
 	intersect(start, vec)
@@ -161,6 +213,11 @@ class Sphere
 		return mn;
 	}
 
+	normal(point)
+	{
+		return point.sub(this.center).imul(this._1r);
+	}
+
 	str()
 	{
 		return `Sphere{center: ${this.center.str()}, r: ${this.radius}}`;
@@ -169,9 +226,9 @@ class Sphere
 
 class Light
 {
-	AMBIENT_LIGHT = 0;
-	POINT_LIGHT = 1;
-	DIRECT_LIGHT = 2;
+	static AMBIENT_LIGHT = 0;
+	static POINT_LIGHT = 1;
+	static DIRECT_LIGHT = 3;
 
 	constructor(type, intencity, color)
 	{
@@ -203,7 +260,7 @@ class DirectLight extends Light
 	constructor(direct, intencity, color)
 	{
 		super(Light.DIRECT_LIGHT, intencity, color);
-		this.direct = direct;
+		this.direct = direct.normalize();
 	}
 }
 
@@ -216,14 +273,45 @@ let objects = [
 ];
 
 let lights = [
-	new AmbientLight(0.2, new Color(255, 255, 255)),
-	new PointLight(new Point(0, 0, 0), 0.2, new Color(255, 255, 255))
+	//new AmbientLight(0.2, new Color(255, 255, 255)),
+	//new PointLight(new Point(2, 1, 0), 0.6, new Color(255, 255, 255)),
+	new DirectLight(new Point(1, 4, 4), 0.2, new Color(255, 255, 255))
 ]
+
+function compute_lightning(point, normal)
+{
+	let lt = 0;
+	for (let light of lights)
+	{
+		//console.log(light);
+		if (light.type == Light.AMBIENT_LIGHT)
+			lt += light.intencity;
+		else
+		{
+			let L;
+			if (light.type == Light.POINT_LIGHT)
+				L = light.point.sub(point).normalize();
+			else if (light.type == Light.DIRECT_LIGHT)
+				L = light.direct;
+			else
+				throw 'unknown light type';
+			
+			let dot = normal.dot(L);
+			if (dot < 0)
+				dot = -dot;
+			if (dot > 0)
+				lt += light.intencity * dot;
+		}
+	}
+	return lt;
+}
 
 function trace_ray(start, vec)
 {
 	let dist = Infinity;
 	let col = Color.Black;
+	let closest_obj = null;
+
 	for (let obj of objects)
 	{
 		let t = obj.intersect(start, vec);
@@ -234,9 +322,15 @@ function trace_ray(start, vec)
 		{
 			dist = t;
 			col = obj.color;
+			closest_obj = obj;
 		}
 	}
-	return col;
+	if (closest_obj == null)
+		return col;
+	let point = vec.clone().imul(dist).iadd(start).normalize();
+	let normal = closest_obj.normal(point);
+
+	return col.mul(compute_lightning(point, normal));
 }
 
 function draw()
