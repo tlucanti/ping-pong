@@ -3,12 +3,13 @@ import {min, max} from "./utils.js"
 
 export class Sphere
 {
-	constructor(center, radius, color, specular)
+	constructor(center, radius, color, specular, reflective)
 	{
 		this.center = center;
 		this.radius = radius;
 		this.color = color;
 		this.specular = specular;
+		this.reflective = reflective;
 
 		this._r2 = radius * radius;
 		this._1r = 1 / radius;

@@ -8,17 +8,17 @@ import {Light, AmbientLight, PointLight, DirectLight} from "./Light.js"
 
 let objects = [
 	//new Sphere(new Point(-4, 0, 0), 2, new Color(250, 200, 100)),
-	new Sphere(new Point(0, -1, 3), 1, new Color(255, 0, 0),     500),
-	new Sphere(new Point(2, 0, 4),  1, new Color(0, 0, 255),	 500),
-	new Sphere(new Point(-2, 0, 4), 1, new Color(0, 255, 0),     10),
+	new Sphere(new Point(0, -1, 3), 1, new Color(255, 0, 0), 500, 0.2),
+	new Sphere(new Point(2, 0, 4),  1, new Color(0, 0, 255), 500, 0.3),
+	new Sphere(new Point(-2, 0, 4), 1, new Color(0, 255, 0), 10,  0.4),
 
-	new Sphere(new Point(0, -5001, 0), 5000, new Color(255, 255, 0), 1000),
+	new Sphere(new Point(0, -5001, 0), 5000, new Color(255, 255, 0), 1000, 0.5),
 ];
 
 let lights = [
-	// new AmbientLight(0.2, new Color(255, 255, 255)),
+	new AmbientLight(0.1, new Color(255, 255, 255)),
 	new PointLight(new Point(2, 1, 0), 0.6, new Color(255, 255, 255)),
-	// new DirectLight(new Point(1, 4, 4), 0.2, new Color(255, 255, 255))
+	new DirectLight(new Point(1, 4, 4), 0.1, new Color(255, 255, 255))
 ]
 
 
@@ -40,6 +40,12 @@ function closest_intersection(start, vec, t_min, t_max)
 		}
 	}
 	return {obj: closest_obj, dist: dist};
+}
+
+function reflect_ray(ray, normal)
+{
+	let dot = normal.dot(ray);
+	return normal.mul(dot * 2).isub(ray);
 }
 
 function compute_lightning(point, normal, vec, specular)
@@ -80,18 +86,17 @@ function compute_lightning(point, normal, vec, specular)
 			// specular color
 			if (specular > 0)
 			{
-				let R = normal.mul(normal_angle * 2).isub(L).normalize();
+				let R = reflect_ray(L, normal).normalize();
 				let specular_angle = R.dot(vec);
 				if (specular_angle < 0)
 					lt += light.intencity * Math.pow(specular_angle, specular);
 			}
-
 		}
 	}
 	return lt;
 }
 
-function trace_ray(start, vec, t_min, t_max)
+function trace_ray(start, vec, t_min, t_max, req_depth)
 {
 	let col = Color.Black;
 	let ret = closest_intersection(start, vec, t_min, t_max);
@@ -104,7 +109,20 @@ function trace_ray(start, vec, t_min, t_max)
 	let normal = closest_obj.normal(point);
 
 	col = closest_obj.color;
-	return col.mul(compute_lightning(point, normal, vec, closest_obj.specular));
+	let local_color = col.mul(
+		compute_lightning(point, normal, vec, closest_obj.specular)
+	);
+
+	let reflective = closest_obj.reflective;
+	if (req_depth <= 0 || reflective <= 0)
+		return local_color;
+
+	let R = reflect_ray(vec, normal).imul(-1);
+	let reflected_color = trace_ray(point, R, 0.001, Infinity, req_depth - 1);
+
+	return local_color.imul(1 - reflective).iadd(
+		reflected_color.imul(reflective)
+	);
 }
 
 function draw()
@@ -115,7 +133,7 @@ function draw()
 	let canvas = new Canvas(c);
 	canvas.smooth = false;
 
-	let camera = new Point(-0.5, 0, -2);
+	let camera = new Point(0, 0, -2);
 
 	for (let z=0; z < W; ++z)
 	{
@@ -124,7 +142,7 @@ function draw()
 			let vec = new Point((z - W / 2) / W, (y - H / 2) / H, 1);
 			vec.normalize();
 			//console.log(`tracing ray ${vec.str()} from ${camera.str()}`);
-			let px = trace_ray(camera, vec, 0, Infinity);
+			let px = trace_ray(camera, vec, 0, Infinity, 4);
 			canvas.put_pixel(z, H - y, px.red, px.green, px.blue);
 		}
 	}
