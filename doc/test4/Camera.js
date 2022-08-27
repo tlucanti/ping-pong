@@ -3,7 +3,25 @@ import {RotateMatrix} from "./Matrix.js"
 
 export class Camera
 {
-	constructor(pos, dir)
+	constructor(...args)
+	{
+		if (args.length == 1)
+			this.__init_json__(...args);
+		else if (args.length == 2)
+			this.__init_args__(...args);
+		else
+			throw 'invalid constructor';
+	}
+
+	__init_json__(json)
+	{
+		this.__init_args__(
+			new Point(json['position']),
+			new Point(json['direction'])
+		);
+	}
+
+	__init_args__(pos, dir)
 	{
 		this.position = pos;
 		this.alpha = Math.atan2(dir._x, dir._z);

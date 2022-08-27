@@ -1,7 +1,26 @@
 
 export class Point
 {
-	constructor(x, y, z)
+	constructor(...args)
+	{
+		if (args.length == 1)
+			this.__init_json__(...args);
+		else if (args.length == 3)
+			this.__init_args__(...args);
+		else
+			throw 'invalid constructor';
+	}
+
+	__init_json__(json)
+	{
+		this.__init_args__(
+			json[0],
+			json[1],
+			json[2]
+		);
+	}
+
+	__init_args__(x, y, z)
 	{
 		this._x = x;
 		this._y = y;

@@ -1,7 +1,26 @@
 
 export class Color
 {
-	constructor(red, green, blue)
+	constructor(...args)
+	{
+		if (args.length == 1)
+			this.__init_json__(...args);
+		else if (args.length == 3)
+			this.__init_args__(...args);
+		else
+			throw 'invalid constructor';
+	}
+
+	__init_json__(json)
+	{
+		this.__init_args__(
+			json[0],
+			json[1],
+			json[2]
+		);
+	}
+
+	__init_args__(red, green, blue)
 	{
 		this.red = red;
 		this.green = green;

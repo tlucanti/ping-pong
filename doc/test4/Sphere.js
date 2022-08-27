@@ -3,7 +3,28 @@ import {min, max} from "./utils.js"
 
 export class Sphere
 {
-	constructor(center, radius, color, specular, reflective)
+	constructor(...args)
+	{
+		if (args.length == 1)
+			this.__init_json__(...args);
+		else if (args.length == 5)
+			this.__init_args__(...args);
+		else
+			throw 'invalid constructor';
+	}
+
+	__init_json__(json)
+	{
+		this.__init_args__(
+			new Point(json['center']),
+			json['radius'],
+			new Color(json['color']),
+			json['specular'],
+			json['reflective']
+		);
+	}
+
+	__init_args__(center, radius, color, specular, reflective)
 	{
 		this.center = center;
 		this.radius = radius;

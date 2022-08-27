@@ -7,22 +7,47 @@ import {Sphere} from "./Sphere.js"
 import {Light, AmbientLight, PointLight, DirectLight} from "./Light.js"
 import {Camera} from "./Camera.js"
 
-let objects = [
-	//new Sphere(new Point(-4, 0, 0), 2, new Color(250, 200, 100)),
-	new Sphere(new Point(0, -1, 3), 1, new Color(255, 0, 0), 500, 0.2),
-	new Sphere(new Point(2, 0, 4),  1, new Color(0, 0, 255), 500, 0.3),
-	new Sphere(new Point(-2, 0, 4), 1, new Color(0, 255, 0), 10,  0.4),
+// let objects = [
+// 	//new Sphere(new Point(-4, 0, 0), 2, new Color(250, 200, 100)),
+// 	new Sphere(new Point(0, -1, 3), 1, new Color(255, 0, 0), 500, 0.2),
+// 	new Sphere(new Point(2, 0, 4),  1, new Color(0, 0, 255), 500, 0.3),
+// 	new Sphere(new Point(-2, 0, 4), 1, new Color(0, 255, 0), 10,  0.4),
 
-	new Sphere(new Point(0, -5001, 0), 5000, new Color(255, 255, 0), 1000, 0.5),
-];
+// 	new Sphere(new Point(0, -5001, 0), 5000, new Color(255, 255, 0), 1000, 0.5),
+// ];
 
-let lights = [
-	new AmbientLight(0.1, new Color(255, 255, 255)),
-	new PointLight(new Point(2, 1, 0), 0.6, new Color(255, 255, 255)),
-	new DirectLight(new Point(1, 4, 4), 0.1, new Color(255, 255, 255))
-]
+// let lights = [
+// 	new AmbientLight(0.1, new Color(255, 255, 255)),
+// 	new PointLight(new Point(2, 1, 0), 0.6, new Color(255, 255, 255)),
+// 	new DirectLight(new Point(1, 4, 4), 0.1, new Color(255, 255, 255))
+// ]
 
-let camera = new Camera(new Point(0, 0, -1), new Point(1, -0.5, 1).normalize());
+// let camera = new Camera(new Point(0, 0, -1), new Point(0, 0, 1).normalize());
+
+let objects = [];
+let lights = [];
+let cameras = [];
+
+let camera;
+
+async function parse_scene(fname)
+{
+	const response = await fetch(fname);
+	const scene = await response.json();
+
+	for (let _camera of scene['camera'])
+		cameras.push(new Camera(_camera));
+
+	for (let _sphere of scene['sphere'])
+		objects.push(new Sphere(_sphere));
+
+	for (let _light of scene['light'])
+		lights.push(new Light(_light));
+
+	if (cameras.length == 0)
+		throw 'there are no cameras in scene';
+	camera = cameras[0];
+}
 
 function closest_intersection(start, vec, t_min, t_max)
 {
@@ -129,6 +154,8 @@ function trace_ray(start, vec, t_min, t_max, req_depth)
 
 function draw()
 {
+	parse_scene('scene.json');
+
 	let c = document.getElementById('canvas');
 	let W = c.width;
 	let H = c.height;
