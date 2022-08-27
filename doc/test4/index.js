@@ -8,12 +8,11 @@ import {Light, AmbientLight, PointLight, DirectLight} from "./Light.js"
 
 let objects = [
 	//new Sphere(new Point(-4, 0, 0), 2, new Color(250, 200, 100)),
-	new Sphere(new Point(10, 0, 0), 1, new Color(250, 200, 100)),
-	new Sphere(new Point(0, -1, 3), 1, new Color(255, 0, 0)),
-	new Sphere(new Point(2, 0, 4),  1, new Color(0, 0, 255)),
-	new Sphere(new Point(-2, 0, 4), 1, new Color(0, 255, 0)),
+	new Sphere(new Point(0, -1, 3), 1, new Color(255, 0, 0),     500),
+	new Sphere(new Point(2, 0, 4),  1, new Color(0, 0, 255),	 500),
+	new Sphere(new Point(-2, 0, 4), 1, new Color(0, 255, 0),     10),
 
-	new Sphere(new Point(0, -5001, 0), 5000, new Color(255, 255, 0)),
+	new Sphere(new Point(0, -5001, 0), 5000, new Color(255, 255, 0), 1000),
 ];
 
 let lights = [
@@ -22,7 +21,7 @@ let lights = [
 	new DirectLight(new Point(1, 4, 4), 0.2, new Color(255, 255, 255))
 ]
 
-function compute_lightning(point, normal)
+function compute_lightning(point, normal, vec, specular)
 {
 	let lt = 0;
 	for (let light of lights)
@@ -40,11 +39,17 @@ function compute_lightning(point, normal)
 			else
 				throw 'unknown light type';
 			
-			let dot = normal.dot(L);
-			if (dot > 0)
-				lt += light.intencity * dot;
-			if (lt > 1)
-				console.log(dot);
+			let normal_angle = normal.dot(L);
+			if (normal_angle > 0)
+				lt += light.intencity * normal_angle;
+
+			if (specular > 0)
+			{
+				let R = normal.mul(normal_angle * 2).isub(L).normalize();
+				let specular_angle = R.dot(vec);
+				lt += light.intencity * Math.pow(specular_angle, specular);
+			}
+
 		}
 	}
 	return lt;
@@ -71,10 +76,10 @@ function trace_ray(start, vec)
 	}
 	if (closest_obj == null)
 		return col;
-	let point = vec.clone().imul(dist).iadd(start);
+	let point = vec.mul(dist).iadd(start);
 	let normal = closest_obj.normal(point);
 
-	return col.mul(compute_lightning(point, normal));
+	return col.mul(compute_lightning(point, normal, vec, closest_obj.specular));
 }
 
 function draw()
