@@ -5,6 +5,7 @@ import {Point} from "./Point.js"
 import {Color} from "./Color.js"
 import {Sphere} from "./Sphere.js"
 import {Light, AmbientLight, PointLight, DirectLight} from "./Light.js"
+import {Camera} from "./Camera.js"
 
 let objects = [
 	//new Sphere(new Point(-4, 0, 0), 2, new Color(250, 200, 100)),
@@ -21,6 +22,7 @@ let lights = [
 	new DirectLight(new Point(1, 4, 4), 0.1, new Color(255, 255, 255))
 ]
 
+let camera = new Camera(new Point(0, 0, -1), new Point(1, -0.5, 1).normalize());
 
 function closest_intersection(start, vec, t_min, t_max)
 {
@@ -93,7 +95,7 @@ function compute_lightning(point, normal, vec, specular)
 			}
 		}
 	}
-	return lt;
+	return min(1, lt);
 }
 
 function trace_ray(start, vec, t_min, t_max, req_depth)
@@ -130,19 +132,24 @@ function draw()
 	let c = document.getElementById('canvas');
 	let W = c.width;
 	let H = c.height;
+	let _1H = 1 / H;
+	let _1W = 1 / W;
 	let canvas = new Canvas(c);
 	canvas.smooth = false;
 
-	let camera = new Point(0, 0, -2);
-
+	console.log(camera);
 	for (let z=0; z < W; ++z)
 	{
 		for (let y=0; y < H; ++y)
 		{
-			let vec = new Point((z - W / 2) / W, (y - H / 2) / H, 1);
-			vec.normalize();
+			let vec = new Point(
+				(z - W / 2) * _1W,
+				(y - H / 2) * _1H,
+				1
+			).normalize();
+			camera.matrix.irotate(vec);
 			//console.log(`tracing ray ${vec.str()} from ${camera.str()}`);
-			let px = trace_ray(camera, vec, 0, Infinity, 4);
+			let px = trace_ray(camera.position, vec, 0, Infinity, 4);
 			canvas.put_pixel(z, H - y, px.red, px.green, px.blue);
 		}
 	}

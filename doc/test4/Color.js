@@ -10,7 +10,11 @@ export class Color
 
 	mul(factor)
 	{
-		return new Color(this.red * factor, this.green * factor, this.blue * factor);
+		return new Color(
+			this.red * factor,
+			this.green * factor,
+			this.blue * factor
+		);
 	}
 
 	imul(factor)
@@ -23,7 +27,11 @@ export class Color
 
 	add(col)
 	{
-		return new Color(this.red + col.red, this.green + col.green, this.red + col.red);
+		return new Color(
+			this.red + col.red,
+			this.green + col.green,
+			this.red + col.red
+		);
 	}
 
 	iadd(col)
