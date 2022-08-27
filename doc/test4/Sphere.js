@@ -31,7 +31,7 @@ export class Sphere
 		let mn = min(x1, x2);
 		
 		//console.log(start, vec, a, b, c, D, x1, x2, mn);
-		if (mn < 0)
+		if (mn < 0.00001)
 			return max(x1, x2);
 		return mn;
 	}
