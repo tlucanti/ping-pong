@@ -1,4 +1,6 @@
 
+import {not_undef} from "./utils.js"
+
 export class Color
 {
 	constructor(...args)
@@ -8,15 +10,49 @@ export class Color
 		else if (args.length == 3)
 			this.__init_args__(...args);
 		else
-			throw 'invalid constructor';
+			throw 'invalid Color constructor';
 	}
 
 	__init_json__(json)
 	{
+		if (typeof(json) === 'string')
+		{
+			switch(json)
+			{
+				case 'red':
+					this.__init_args__(255, 0, 0);
+					break ;
+				case 'green':
+					this.__init_args__(0, 255, 0);
+					break ;
+				case 'blue':
+					this.__init_args__(0, 0, 255);
+					break ;
+				case 'yellow':
+					this.__init_args__(255, 255, 0);
+					break ;
+				case 'cyan':
+					this.__init_args__(0, 255, 255);
+					break ;
+				case 'purple':
+				case 'magneta':
+					this.__init_args__(255, 0, 255);
+					break ;
+				case 'black':
+					this.__init_args__(0, 0, 0);
+					break ;
+				case 'white':
+					this.__init_args__(255, 255, 255);
+					break ;
+				default:
+					throw `unknown color (${json})`;
+			}
+			return ;
+		}
 		this.__init_args__(
-			json[0],
-			json[1],
-			json[2]
+			not_undef(json[0]),
+			not_undef(json[1]),
+			not_undef(json[2])
 		);
 	}
 

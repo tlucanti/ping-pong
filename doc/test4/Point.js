@@ -1,4 +1,6 @@
 
+import {not_undef} from "./utils.js"
+
 export class Point
 {
 	constructor(...args)
@@ -8,15 +10,15 @@ export class Point
 		else if (args.length == 3)
 			this.__init_args__(...args);
 		else
-			throw 'invalid constructor';
+			throw 'invalid Point constructor';
 	}
 
 	__init_json__(json)
 	{
 		this.__init_args__(
-			json[0],
-			json[1],
-			json[2]
+			not_undef(json[0]),
+			not_undef(json[1]),
+			not_undef(json[2])
 		);
 	}
 

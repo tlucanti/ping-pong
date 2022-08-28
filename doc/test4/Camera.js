@@ -1,5 +1,7 @@
 
 import {RotateMatrix} from "./Matrix.js"
+import {Point} from "./Point.js"
+import {not_undef} from "./utils.js"
 
 export class Camera
 {
@@ -10,14 +12,14 @@ export class Camera
 		else if (args.length == 2)
 			this.__init_args__(...args);
 		else
-			throw 'invalid constructor';
+			throw 'invalid Camera constructor';
 	}
 
 	__init_json__(json)
 	{
 		this.__init_args__(
-			new Point(json['position']),
-			new Point(json['direction'])
+			new Point(not_undef(json['position'])),
+			new Point(not_undef(json['direction']))
 		);
 	}
 

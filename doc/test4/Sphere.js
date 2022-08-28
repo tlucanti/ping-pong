@@ -1,5 +1,8 @@
 
 import {min, max} from "./utils.js"
+import {Point} from "./Point.js"
+import {Color} from "./Color.js"
+import {not_undef} from "./utils.js"
 
 export class Sphere
 {
@@ -10,17 +13,17 @@ export class Sphere
 		else if (args.length == 5)
 			this.__init_args__(...args);
 		else
-			throw 'invalid constructor';
+			throw 'invalid Sphere constructor';
 	}
 
 	__init_json__(json)
 	{
 		this.__init_args__(
-			new Point(json['center']),
-			json['radius'],
-			new Color(json['color']),
-			json['specular'],
-			json['reflective']
+			new Point(not_undef(json['center'])),
+			not_undef(json['radius']),
+			new Color(not_undef(json['color'])),
+			not_undef(json['specular']),
+			not_undef(json['reflective'])
 		);
 	}
 

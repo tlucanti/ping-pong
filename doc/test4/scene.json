@@ -1,7 +1,7 @@
 {
 	"camera": [
 		{
-			"position":		[0, 0, 0],
+			"position":		[0, 0, -1],
 			"direction":	[0, 0, 1]
 		}
 	],
@@ -56,7 +56,7 @@
 		},
 
 		{
-			"type":			"sirect",
+			"type":			"direct",
 			"intencity":	0.1,	
 			"color":		"white",
 			"direction":	[1, 4, 4]

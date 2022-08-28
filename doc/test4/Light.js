@@ -1,4 +1,8 @@
 
+import {Point} from "./Point.js"
+import {Color} from "./Color.js"
+import {not_undef} from "./utils.js"
+
 export class Light
 {
 	static AMBIENT_LIGHT = 0;
@@ -8,11 +12,11 @@ export class Light
 	constructor(...args)
 	{
 		if (args.length == 1)
-			this.__init_json__(args);
+			this.__init_json__(...args);
 		else if (args.length == 3 || args.length == 4)
 			this.__init_args__(...args);
 		else
-			throw 'invalid constructor';
+			throw 'invalid Light constructor';
 	}
 
 	__init_json__(json)
@@ -20,27 +24,29 @@ export class Light
 		switch (json['type'])
 		{
 			case 'ambient':
-				__init_ambient__(
-					json['intencity'],
-					new Color(json['color'])
+				this.__init_ambient__(
+					not_undef(json['intencity']),
+					new Color(not_undef(json['color']))
 				);
 				break ;
 			case 'point':
-				__init_point__(
-					new Point(json['position']),
-					json['intencity'],
-					new Color(json['color'])
+				this.__init_point__(
+					new Point(not_undef(json['position'])),
+					not_undef(json['intencity']),
+					new Color(not_undef(json['color']))
 				);
 				break ;
 			case 'direct':
-				__init_direct__(
-					new Point(json['direction']),
-					json['intencity'],
-					new Color(json['color'])
+				this.__init_direct__(
+					new Point(not_undef(json['direction'])),
+					not_undef(json['intencity']),
+					new Color(not_undef(json['color']))
 				);
 				break ;
+			case undefined:
+				throw 'light type undefined';
 			default:
-				throw 'invalid light type';
+				throw `invalid light type (${json['type']}) in JSON config`;
 		}
 	}
 
@@ -58,7 +64,7 @@ export class Light
 				this.__init_direct__(args[1], args[2], args[3]);
 				break ;
 			default:
-				throw 'invalid light type';
+				throw 'invalid light type in constructor';
 		}
 	}
 

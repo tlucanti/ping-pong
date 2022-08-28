@@ -4,7 +4,7 @@ import {Canvas} from "./Canvas.js"
 import {Point} from "./Point.js"
 import {Color} from "./Color.js"
 import {Sphere} from "./Sphere.js"
-import {Light, AmbientLight, PointLight, DirectLight} from "./Light.js"
+import {Light} from "./Light.js"
 import {Camera} from "./Camera.js"
 
 // let objects = [
@@ -30,10 +30,18 @@ let cameras = [];
 
 let camera;
 
-async function parse_scene(fname)
+async function get_file(fname)
 {
 	const response = await fetch(fname);
 	const scene = await response.json();
+
+	return scene;
+}
+
+async function parse_scene(fname)
+{
+	const scene = await get_file(fname);
+	// console.log('gg scene', scene);
 
 	for (let _camera of scene['camera'])
 		cameras.push(new Camera(_camera));
@@ -46,7 +54,7 @@ async function parse_scene(fname)
 
 	if (cameras.length == 0)
 		throw 'there are no cameras in scene';
-	camera = cameras[0];
+	console.log('parsed ok');
 }
 
 function closest_intersection(start, vec, t_min, t_max)
@@ -154,7 +162,11 @@ function trace_ray(start, vec, t_min, t_max, req_depth)
 
 function draw()
 {
-	parse_scene('scene.json');
+	camera = cameras[0];
+	console.log('obj', objects);
+	console.log('lig', lights);
+	console.log('cam', cameras);
+	console.log('cur cam', camera);
 
 	let c = document.getElementById('canvas');
 	let W = c.width;
@@ -183,5 +195,12 @@ function draw()
 	canvas.update();
 }
 
-draw();
+async function start(fname)
+{
+	const scene = await parse_scene(fname);
+	console.log('parsed?');
+	draw(scene);
+}
+
+start('scene.json', draw);
 console.log('ok');
