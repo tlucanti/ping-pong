@@ -9,4 +9,9 @@ export class AppController {
   index() {
     return this.appService.getIndex();
   }
+
+  @Get('login')
+  login() {
+    return this.appService.getLogin();
+  }
 }
