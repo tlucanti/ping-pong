@@ -1,35 +1,21 @@
 
-require('dotenv').config();
 const { Client } = require('pg');
+import { UsersDB } from './UsersDB'
 
-
-const PG_USER = process.env.PG_USER;
-const PG_PASSWD = process.env.PG_PASS;
-const PG_DB = process.env.PG_DB;
-const conString = `postgres://${PG_USER}:${PG_PASS}@localhost:5432/${PG_DB}`;
+const conString = 'postgres://postgres:postgres@localhost:5432/ping_pong';
 console.log(conString);
 
 async function main() {
-    const st = 'postgres://postgres:postgres@localhost:5432/users';
-    const usersDB = new Client({
-        user: 'postgres',
-        password: 'postgres',
-        host: 'localhost',
-        database: 'users',
-        port: 5432
-    });
-    console.log('created client');
+    const db = new UsersDB(conString);
+    await db.connect();
 
-    usersDB.connect()
-        .then(() => console.log('connected'))
-        .catch((err) => console.error('connection error'));
+    console.log(await db.addUser('my-user', 'passHash'));
+    console.log(await db.getAllUsers());
 
-    const res = await usersDB.query('SELECT * from users;');
-    console.log('queried');
+    await db.deleteUserByName('my-user');
+    console.log(await db.getAllUsers());
 
-    //const res = await client.query('SELCT $1::text as message', ['Hello world!'])
-    //console.log(res.rows[0].message);
-    usersDB.end();
+    //db.end();
 }
 
 (async() => await main())();
