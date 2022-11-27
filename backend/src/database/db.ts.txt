@@ -9,11 +9,12 @@ async function main() {
     const db = new UsersDB(conString);
     await db.connect();
 
-    console.log(await db.addUser('my-user', 'passHash'));
+    //console.log(await db.addUser('my-user', 'passHash'));
     console.log(await db.getAllUsers());
 
-    await db.deleteUserByName('my-user');
-    console.log(await db.getAllUsers());
+    //await db.deleteUserByName('my-user');
+    //console.log(await db.getAllUsers());
+    console.log(await db.getUserById(0));
 
     //db.end();
 }

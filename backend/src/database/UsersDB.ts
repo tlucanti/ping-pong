@@ -5,8 +5,10 @@ export class UsersDB
 {
     _db: any;
 
-    constructor(conString: string)
+    constructor()
     {
+        const conString: string =
+            'postgres://postgres:postgres@localhost:5432/ping_pong';
         this._db = new Client(conString);
     }
 
@@ -25,7 +27,7 @@ export class UsersDB
 
     async addUser(username: string, password_hash: string)
     {
-        return await this._db.query(`
+        const response = await this._db.query(`
             insert into
                 users
                     (username, password_hash)
@@ -34,6 +36,7 @@ export class UsersDB
             returning
                 id
         `);
+        return response.rows[0].id;
     }
 
     async deleteUserById(id: number)
@@ -52,16 +55,18 @@ export class UsersDB
 
     async getUserById(id: number)
     {
-        return await this._db.query(`
+        const response = await this._db.query(`
             select * from users where id = ${id}
         `);
+        return response.rows;
     }
 
     async getUserByName(username: string)
     {
-        return await this._db.query(`
-            select * from users where name = ${username}
+        const response = await this._db.query(`
+            select * from users where username = '${username}'
         `);
+        return response.rows;
     }
 }
 
