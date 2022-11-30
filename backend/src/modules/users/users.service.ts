@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { UsersDB } from '../../database/UsersDB'
 
 @Injectable()
@@ -12,23 +12,41 @@ export class UsersService {
         this.db.connect();
     }
 
-    addUser(username: string, password_hash: string): number
+    async addUser(username: string, password_hash: string)
     {
-        return this.db.addUser(username, password_hash);
+        if (await this.db.getUserByName(username).length != 0)
+            throw new BadRequestException(`user ${username} already exist`);
+        return await this.db.addUser(username, password_hash);
     }
 
-    getUserById(id: number)
+    async getUserById(id: number)
     {
-        return this.db.getUserById(id);
+        let user = await this.db.getUserById(id);
+        if (user.length == 0)
+            throw new BadRequestException(`user ${id} not exit`);
+        user = user[0];
+        return {
+            id: id,
+            username: user.username,
+            room: user.room
+        };
     }
 
-    getUserByName(username: string)
+    async getUserByName(username: string)
     {
-        return this.db.getUserByName(username);
+        let user = await this.db.getUserByName(username);
+        if (user.length == 0)
+            throw new BadRequestException(`user ${name} not exist`);
+        user = user[0];
+        return {
+            id: user.id,
+            username: user.username,
+            room: user.room
+        }
     }
 
-    getAllUsers()
+    async getAllUsers()
     {
-        return this.db.getAllUsers();
+        return await this.db.getAllUsers();
     }
 }

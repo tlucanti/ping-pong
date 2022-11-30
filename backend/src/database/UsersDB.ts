@@ -68,5 +68,12 @@ export class UsersDB
         `);
         return response.rows;
     }
+
+    async setUserRoom(id: number, room: number)
+    {
+        await this._db.query(`
+            update users set room = ${room} where id = ${id}
+        `);
+    }
 }
 

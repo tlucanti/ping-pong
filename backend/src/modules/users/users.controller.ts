@@ -7,31 +7,31 @@ export class UsersController
     constructor(private readonly usersService: UsersService) {}
 
     @Post('add')
-    addUser(@Body() body): number
+    async addUser(@Body() body)
     {
         console.log('lools');
         console.log(body);
-        return this.usersService.addUser('name', 'pass-hash');
+        return await this.usersService.addUser('name', 'pass-hash');
     }
 
-    @Get('id/:userid')
-    getUserById(@Param('userid') id: number)
+    @Get('get/id/:userid')
+    async getUserById(@Param('userid') id: number)
     {
         console.log('getting user', id);
-        return this.usersService.getUserById(id);
+        return await this.usersService.getUserById(id);
     }
 
-    @Get('name/:username')
-    getUserByName(@Param('username') username: string)
+    @Get('get/name/:username')
+    async getUserByName(@Param('username') username: string)
     {
         console.log('getting user', username);
-        return this.usersService.getUserByName(username);
+        return await this.usersService.getUserByName(username);
     }
 
-    @Get('all')
-    getAllUsers()
+    @Get('get/all')
+    async getAllUsers()
     {
         console.log('getting all users');
-        return this.usersService.getAllUsers();
+        return await this.usersService.getAllUsers();
     }
 }
