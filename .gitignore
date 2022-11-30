@@ -1,8 +1,6 @@
 
 *.swp
 .DS_Store
-package.json
 package-lock.json
-engine
 node_modules
 
