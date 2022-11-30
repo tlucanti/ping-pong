@@ -1,2 +1,2 @@
 
-npm i -g @nestjs/cli
+cd backend && npm i @nestjs/cli
