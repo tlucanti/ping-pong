@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@nestjs/cli": "^9.1.5",
     "@nestjs/typeorm": "^9.0.1",
     "dotenv": "^16.0.3",
     "pg": "^8.8.0",
