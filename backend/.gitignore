@@ -6,4 +6,3 @@ dist
 package-lock.json
 tsconfig.build.json
 nest-cli.json
-tsconfig.json
