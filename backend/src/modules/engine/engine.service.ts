@@ -24,7 +24,7 @@ export class EngineService {
         this.rooms = new RoomsDB();
         this.users.connect();
         this.rooms.connect();
-        this.timer = setInterval(this.updateState, 50, this.rooms);
+        this.timer = setInterval(this.updateState, 1000, this.rooms);
     }
 
     async updateState(db)
@@ -49,7 +49,7 @@ export class EngineService {
                 y = -y;
                 sy = -sy
             }
-            console.log(x, y, sx, sy);
+            //console.log(x, y, sx, sy);
             db.setBallState(ball.id, x, y, sx, sy);
         }
     }
@@ -124,5 +124,16 @@ export class EngineService {
         } else {
             await this.rooms.setUser2BoardPosition(user.room, pos);
         }
+    }
+
+    async exitRoom(id: number)
+    {
+        let user = await this.users.getUserById(id);
+        if (user.length == 0)
+            throw new BadRequestException(`user ${id} not exist`);
+        user = user[0];
+        if (user.room == -1)
+            throw new BadRequestException(`user ${id} not in room`);
+        await this.users.setUserRoom(id, -1);
     }
 }

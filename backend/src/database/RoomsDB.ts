@@ -44,7 +44,7 @@ export class RoomsDB
 
     async getAllBalls()
     {
-        console.log('reading balls');
+        //console.log('reading balls');
         const response = await this._db.query(`
             select id, ballx, bally, speedx, speedy from rooms
         `);

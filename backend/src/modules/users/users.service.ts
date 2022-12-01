@@ -14,9 +14,11 @@ export class UsersService {
 
     async addUser(username: string, password_hash: string)
     {
-        if (await this.db.getUserByName(username).length != 0)
+        const user = await this.db.getUserByName(username);
+        if (user.length != 0)
             throw new BadRequestException(`user ${username} already exist`);
-        return await this.db.addUser(username, password_hash);
+        const id: number = await this.db.addUser(username, password_hash);
+        return { id: id };
     }
 
     async getUserById(id: number)

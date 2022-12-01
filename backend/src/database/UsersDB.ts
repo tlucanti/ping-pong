@@ -20,7 +20,7 @@ export class UsersDB
     async getAllUsers()
     {
         const response = await this._db.query(`
-            select * from users
+            select id, room, username from users
         `);
         return response.rows;
     }
@@ -30,9 +30,9 @@ export class UsersDB
         const response = await this._db.query(`
             insert into
                 users
-                    (username, password_hash)
+                    (room, username, password_hash)
                 values
-                    ('${username}', '${password_hash}')
+                    (-1, '${username}', '${password_hash}')
             returning
                 id
         `);

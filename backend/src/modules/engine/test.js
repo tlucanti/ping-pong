@@ -1,6 +1,7 @@
 
 const url =     'http://localhost:3000/api/engine/move/1';
-const get_url = 'http://localhost:3000/api/engine/get/1';
+//const get_url = 'http://localhost:3000/api/engine/get/1';
+const get_url = 'http://localhost:3000/api/user/get/lol';
 let coord = 0.5
 
 function max(a, b)
@@ -19,7 +20,9 @@ function min(a, b)
 
 function getjson(url, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    xhr.withCredentials = true;
+    xhr.open('GET', '0.0.0.0:3001', true);
+    //xhr.setRequestHeader('Origin', 'http://localhost:3000');
     xhr.responseType = 'json';
     xhr.onload = function() {
       var status = xhr.status;
@@ -32,9 +35,16 @@ function getjson(url, callback) {
     xhr.send();
 };
 
+let resp = getjson(get_url, function(status, resp) {
+    console.log(status, resp);
+});
+
 let timer = setInterval(
     function() {
-        fetch(get_url,
+    getjson(get_url, function(status, resp) {
+        console.log(status, resp);
+    });
+        /*fetch(get_url,
             {
                 mode: "no-cors",
                 headers: {
@@ -42,9 +52,9 @@ let timer = setInterval(
                 },
             })
         .then(response => response.json())
-        .then(json => { console.log(json)});
+        .then(json => { console.log(json)}); */
     },
-    1000
+    100000000000
 );
 
 document.onkeypress = async function(ev) {
