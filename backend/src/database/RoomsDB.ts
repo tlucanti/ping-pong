@@ -42,11 +42,11 @@ export class RoomsDB
         `);
     }
 
-    async getAllBalls()
+    async getAllRooms()
     {
         //console.log('reading balls');
         const response = await this._db.query(`
-            select id, ballx, bally, speedx, speedy from rooms
+            select * from rooms
         `);
         return response.rows;
     }
@@ -73,18 +73,22 @@ export class RoomsDB
         `);
     }
 
-    async setBallState(room_id: number,
+    async setRoomState(room_id: number,
                        ballx: number,
                        bally: number,
                        speedx: number,
-                       speedy: number)
+                       speedy: number,
+                       score1: number,
+                       score2: number)
     {
         await this._db.query(`
             update rooms set
                 ballx = ${ballx},
                 bally = ${bally},
                 speedx = ${speedx},
-                speedy = ${speedy}
+                speedy = ${speedy},
+                score1 = ${score1},
+                score2 = ${score2}
             where id = ${room_id}
         `);
     }

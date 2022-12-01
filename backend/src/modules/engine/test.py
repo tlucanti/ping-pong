@@ -21,9 +21,8 @@ while True:
     y = j['ball']['posy']
     line1.set_ydata(y)
     line1.set_xdata(x)
-    print(x, y)
     fig.canvas.draw()
     fig.canvas.flush_events()
-    time.sleep(0.05)
+    print(x, y)
 
 

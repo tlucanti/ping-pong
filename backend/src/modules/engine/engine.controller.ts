@@ -31,6 +31,8 @@ export class EngineController
     async moveBoard(@Body() body, @Param('user_id') id: number, @Res() response: Response)
     {
         console.log(`moving ${id}'s board to`, body);
+        if (body.position === undefined)
+            throw new BadRequestException('expected (position)')
         const content = await this.engineService.moveBoard(id, 0.3);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
     }

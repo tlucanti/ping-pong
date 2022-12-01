@@ -11,12 +11,19 @@ function trunc(a)
     return a;
 }
 
+function rand(start, end)
+{
+    return Math.random() * (end - start) + start;
+}
+
 @Injectable()
 export class EngineService {
 
     users: any;
     rooms: any;
-    timer: any;
+    UPDATE_FREQUENCY: number = 1000;
+    BOARD_SIZE: number = 0.1;
+
 
     constructor()
     {
@@ -24,24 +31,24 @@ export class EngineService {
         this.rooms = new RoomsDB();
         this.users.connect();
         this.rooms.connect();
-        this.timer = setInterval(this.updateState, 1000, this.rooms);
+        setInterval(this.__do_update, this.UPDATE_FREQUENCY, this);
     }
 
-    async updateState(db)
+    async __do_update(self)
     {
-        const balls = await db.getAllBalls();
-        for (const ball of balls) {
-            let x = ball.ballx + ball.speedx;
-            let y = ball.bally + ball.speedy;
-            let sx = ball.speedx;
-            let sy = ball.speedy;
-            if (x > 1) {
-                x = 2 - x;
-                sx = -sx;
-            } else if (x < 0) {
-                x = -x;
-                sx = -sx;
-            }
+        self.updateState()
+    }
+
+    async updateState()
+    {
+        const rooms = await this.rooms.getAllRooms();
+        for (const room of rooms) {
+            let x = room.ballx + room.speedx;
+            let y = room.bally + room.speedy;
+            let sx = room.speedx;
+            let sy = room.speedy;
+            let score1 = room.score1;
+            let score2 = room.score2;
             if (y > 1) {
                 y = 2 - y;
                 sy = -sy;
@@ -49,9 +56,45 @@ export class EngineService {
                 y = -y;
                 sy = -sy
             }
-            //console.log(x, y, sx, sy);
-            db.setBallState(ball.id, x, y, sx, sy);
+            if (x > 1) {
+                if (Math.abs(room.pos1 - y) < this.BOARD_SIZE) {
+                    ++score1;
+                    [x, y, sx, sy] = this.resetRoom();
+                } else {
+                    x = 2 - x;
+                    sx = -sx;
+                }
+            } else if (x < 0) {
+                if (Math.abs(room.po2 - y) < this.BOARD_SIZE) {
+                    ++score2;
+                    [x, y, sx, sy] = this.resetRoom();
+                } else {
+                    x = -x;
+                    sx = -sx;
+                }
+            }
+            /* console.log(x.toFixed(2),
+                        y.toFixed(2),
+                        sx.toFixed(2),
+                        sy.toFixed(2),
+                        room.pos1.toFixed(2),
+                        room.pos2.toFixed(2),
+                        score1,
+                        score2); */
+            this.rooms.setRoomState(room.id, x, y, sx, sy, score1, score2);
         }
+    }
+
+
+    resetRoom()
+    {
+        let sx = rand(0.05, 0.1);
+        return [
+            0.5,
+            rand(0.2, 0.8),
+            sx,
+            0.2 - sx
+        ];
     }
 
     async createRoom(user1: number, user2: number)
@@ -68,16 +111,8 @@ export class EngineService {
             throw new BadRequestException(`user ${user1} is already in room`);
         if (u2.room != -1)
             throw new BadRequestException(`user ${user2} is already in room`);
-        const ballStartX = 0.5;
-        const ballStartY = 0.5;
-        const ballStartSpeedX = 0.5;
-        const ballStartSpeedY = 0.5;
-        const room_id = await this.rooms.createRoom(user1,
-                                                    user2,
-                                                    ballStartX,
-                                                    ballStartY,
-                                                    ballStartSpeedX,
-                                                    ballStartSpeedY);
+        const [bx, by, sx, sy] = this.resetRoom();
+        const room_id = await this.rooms.createRoom(user1, user2, bx, by, sx, sy);
         await this.users.setUserRoom(user1, room_id);
         await this.users.setUserRoom(user2, room_id);
         return room_id;
