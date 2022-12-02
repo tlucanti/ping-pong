@@ -15,6 +15,10 @@ export class UsersDB
     async connect()
     {
         await this._db.connect();
+        await this._db.query(`
+            create table if not exists users
+                (id serial, room int, username char(16), password_hash char(32))
+        `);
     }
 
     async getAllUsers()

@@ -23,7 +23,7 @@ export class EngineService {
     rooms: any;
     UPDATE_FREQUENCY: number = 1000;
     BOARD_SIZE: number = 0.1;
-
+    VERBOSE_RESPONSE: boolean = true;
 
     constructor()
     {
@@ -32,6 +32,20 @@ export class EngineService {
         this.users.connect();
         this.rooms.connect();
         setInterval(this.__do_update, this.UPDATE_FREQUENCY, this);
+    }
+
+    BadRequest(message: string)
+    {
+        if (this.VERBOSE_RESPONSE)
+            console.log(' <<< 400:', message);
+        throw new BadRequestException(message);
+    }
+
+    NotAcceptable(message: string)
+    {
+        if (this.VERBOSE_RESPONSE)
+            console.log(' <<< 401:', message);
+        throw new NotAcceptableException(message);
     }
 
     async __do_update(self)
@@ -99,18 +113,23 @@ export class EngineService {
 
     async createRoom(user1: number, user2: number)
     {
+        if (user1 === undefined)
+            this.BadRequest('field (user1) expected');
+        if (user2 === undefined)
+            this.BadRequest('field (user2) expected');
+
         let u1 = await this.users.getUserById(user1);
         let u2 = await this.users.getUserById(user2);
         if (u1.length == 0)
-            throw new BadRequestException(`user ${user1} not exist`);
+            this.BadRequest(`user ${user1} not exist`);
         if (u2.length == 0)
-            throw new BadRequestException(`user ${user2} not exist`);
+            this.BadRequest(`user ${user2} not exist`);
         u1 = u1[0];
         u2 = u2[0];
         if (u1.room != -1)
-            throw new BadRequestException(`user ${user1} is already in room`);
+            this.BadRequest(`user ${user1} is already in room`);
         if (u2.room != -1)
-            throw new BadRequestException(`user ${user2} is already in room`);
+            this.BadRequest(`user ${user2} is already in room`);
         const [bx, by, sx, sy] = this.resetRoom();
         const room_id = await this.rooms.createRoom(user1, user2, bx, by, sx, sy);
         await this.users.setUserRoom(user1, room_id);
@@ -122,7 +141,7 @@ export class EngineService {
     {
         let room = await this.rooms.getRoomById(room_id);
         if (room.length == 0)
-            throw new BadRequestException(`room ${room_id} not exist`)
+            this.BadRequest(`room ${room_id} not exist`)
         room = room[0];
         return {
             user1: {
@@ -144,14 +163,17 @@ export class EngineService {
 
     async moveBoard(id: number, pos: number)
     {
+        if (pos === undefined)
+            this.BadRequest('expected (position)')
         if (pos < 0 || pos > 1)
-            throw new NotAcceptableException(`board position not in range [0:1]`);
+            this.NotAcceptable(`board position not in range [0:1]`);
+
         let user = await this.users.getUserById(id);
         if (user.length == 0)
-            throw new BadRequestException(`user ${id} not exist`);
+            this.BadRequest(`user ${id} not exist`);
         user = user[0];
         if (user.room == -1)
-            throw new BadRequestException(`user ${id} not in any room`);
+            this.BadRequest(`user ${id} not in any room`);
         let room = await this.rooms.getRoomById(user.room);
         room = room[0];
         if (room.user1 == id) {
@@ -165,10 +187,10 @@ export class EngineService {
     {
         let user = await this.users.getUserById(id);
         if (user.length == 0)
-            throw new BadRequestException(`user ${id} not exist`);
+            this.BadRequest(`user ${id} not exist`);
         user = user[0];
         if (user.room == -1)
-            throw new BadRequestException(`user ${id} not in room`);
+            this.BadRequest(`user ${id} not in room`);
         await this.users.setUserRoom(id, -1);
     }
 }

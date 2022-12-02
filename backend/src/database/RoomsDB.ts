@@ -15,6 +15,13 @@ export class RoomsDB
     async connect()
     {
         await this._db.connect();
+        await this._db.query(`
+            create table if not exists rooms
+                (id serial, user1 int, user2 int, score1 int, score2 int,
+                 pos1 float4, pos2 float4, ballx float4, bally float4,
+                 speedx float4, speedy float4
+                )
+        `);
     }
 
     async createRoom(user1: number,

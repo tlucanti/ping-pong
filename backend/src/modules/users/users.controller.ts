@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Header, HttpStatus, Req, Res, HttpCode,
+import { Controller, Get, Post, Put, Body, Param, Header, HttpStatus, Req, Res, HttpCode,
     HttpException, BadRequestException } from '@nestjs/common';
 import { Response } from 'express';
 import { UsersService } from './users.service';
@@ -6,48 +6,66 @@ import { UsersService } from './users.service';
 @Controller('api/user')
 export class UsersController
 {
-    USERNAME_LENGTH: number = 16;
-    USER_PASSWORD_LENGTH: number = 32;
+    VERBOSE_REQUEST: boolean = true;
+    VERBOSE_RESPONSE: boolean = true;
 
     constructor(private readonly usersService: UsersService) {}
 
-    @Post('add')
+    printRequest(...params)
+    {
+        if (this.VERBOSE_REQUEST)
+            console.log(' >>> ', ...params);
+    }
+
+    printResponse(message: any)
+    {
+        if (this.VERBOSE_RESPONSE)
+            console.log(' <<< ', message);
+        return message;
+    }
+
+    @Put('add')
     async addUser(@Body() body, @Res() response: Response)
     {
-        console.log('adding new user', body);
-        if (body.username === undefined)
-            throw new BadRequestException('field (username) expected');
-        if (body.password_hash === undefined)
-            throw new BadRequestException('field (password_hash) expected');
-        if (body.username.length > this.USERNAME_LENGTH)
-            throw new BadRequestException('username length too big');
-        if (body.password_hash > this.USER_PASSWORD_LENGTH)
-            throw new BadRequestException('password_hash length too big');
+        this.printRequest('adding new user', body);
         const content = await this.usersService.addUser(body.username, body.password_hash);
+        this.printResponse(content);
+        response.status(HttpStatus.OK).send(JSON.stringify(content));
+    }
+
+    @Post('login')
+    async userLogin(@Body() body, @Res() response: Response)
+    {
+        this.printRequest('log in user', body);
+        const content = await this.usersService.loginUser(body.username, body.password_hash);
+        this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
     }
 
     @Get('get/id/:userid')
     async getUserById(@Param('userid') id: number, @Res() response: Response)
     {
-        console.log('getting user', id);
+        this.printRequest('getting user', id);
         const content = await this.usersService.getUserById(id);
+        this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
     }
 
     @Get('get/name/:username')
     async getUserByName(@Param('username') username: string, @Res() response: Response)
     {
-        console.log('getting user', username);
+        this.printRequest('getting user', username);
         const content =  await this.usersService.getUserByName(username);
+        this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
     }
 
     @Get('get/all')
     async getAllUsers(@Res() response: Response)
     {
-        console.log('getting all users');
+        this.printRequest('getting all users');
         const content = await this.usersService.getAllUsers();
+        this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
     }
 }
