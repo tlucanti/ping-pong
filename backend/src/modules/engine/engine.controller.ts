@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Res, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Res, HttpStatus,
+    BadRequestException, Put } from '@nestjs/common';
 import { EngineService } from './engine.service';
 import { Response } from 'express';
 
@@ -13,26 +14,22 @@ export class EngineController
     printRequest(...params)
     {
         if (this.VERBOSE_REQUEST)
-            console.log(' >>> ', ...params);
+            console.log(' >>>', ...params);
     }
 
     printResponse(message: any)
     {
         if (this.VERBOSE_RESPONSE)
-            console.log(' <<< ', message);
+            console.log(' <<<', message);
     }
 
-    @Post('create_room')
-    async createRoom(@Body() body, @Res() response: Response)
+    @Put('start/:id')
+    async createRoom(@Param('id') id: number, @Res() response: Response)
     {
-        this.printRequest('creating room', body);
-        if (body.user1 === undefined)
-            throw new BadRequestException('field (user1) expected');
-        if (body.user2 === undefined)
-            throw new BadRequestException('field (user2) expected');
-        const content = await this.engineService.createRoom(body.user1, body.user2);
-        this.printResponse(content);
-        response.status(HttpStatus.OK).send(JSON.stringify(content));
+        this.printRequest('starting game', id);
+        await this.engineService.startGame(id, response);
+        //this.printResponse(content);
+        //response.status(HttpStatus.OK).send(JSON.stringify(content));
     }
 
     @Get('get/:room_id')
@@ -48,8 +45,7 @@ export class EngineController
     async moveBoard(@Body() body, @Param('user_id') id: number, @Res() response: Response)
     {
         this.printRequest(`moving ${id}'s board to`, body);
-        if (body.position === undefined)
-            throw new BadRequestException('expected (position)')
+
         const content = await this.engineService.moveBoard(id, 0.3);
         this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));

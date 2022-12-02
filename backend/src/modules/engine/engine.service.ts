@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotAcceptableException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotAcceptableException, HttpStatus } from '@nestjs/common';
 import { UsersDB } from '../../database/UsersDB'
 import { RoomsDB } from '../../database/RoomsDB'
 
@@ -24,6 +24,8 @@ export class EngineService {
     UPDATE_FREQUENCY: number = 1000;
     BOARD_SIZE: number = 0.1;
     VERBOSE_RESPONSE: boolean = true;
+    next_user: number;
+    next_response: any;
 
     constructor()
     {
@@ -31,6 +33,7 @@ export class EngineService {
         this.rooms = new RoomsDB();
         this.users.connect();
         this.rooms.connect();
+        this.next_user = -1;
         setInterval(this.__do_update, this.UPDATE_FREQUENCY, this);
     }
 
@@ -46,6 +49,12 @@ export class EngineService {
         if (this.VERBOSE_RESPONSE)
             console.log(' <<< 401:', message);
         throw new NotAcceptableException(message);
+    }
+
+    printResponse(message)
+    {
+        if (this.VERBOSE_RESPONSE)
+            console.log(' <<<', message);
     }
 
     async __do_update(self)
@@ -111,25 +120,34 @@ export class EngineService {
         ];
     }
 
+    async startGame(user: number, response)
+    {
+        let u = await this.users.getUserById(user);
+        if (u.length == 0)
+            this.BadRequest(`user ${user} not exist`);
+        u = u[0];
+        if (u.room != -1)
+            this.BadRequest(`user ${user} already in room`);
+        if (this.next_user == -1) {
+            this.next_user = user;
+            this.next_response = response;
+        } else {
+            const room_id = await this.createRoom(user, this.next_user);
+            const content = { room_id: room_id };
+            this.printResponse(content);
+            this.next_response.status(HttpStatus.OK).send(JSON.stringify(content));
+            this.printResponse(content);
+            response.status(HttpStatus.OK).send(JSON.stringify(content));
+            this.next_user = -1;
+        }
+    }
+
     async createRoom(user1: number, user2: number)
     {
-        if (user1 === undefined)
-            this.BadRequest('field (user1) expected');
-        if (user2 === undefined)
-            this.BadRequest('field (user2) expected');
-
         let u1 = await this.users.getUserById(user1);
         let u2 = await this.users.getUserById(user2);
-        if (u1.length == 0)
-            this.BadRequest(`user ${user1} not exist`);
-        if (u2.length == 0)
-            this.BadRequest(`user ${user2} not exist`);
         u1 = u1[0];
         u2 = u2[0];
-        if (u1.room != -1)
-            this.BadRequest(`user ${user1} is already in room`);
-        if (u2.room != -1)
-            this.BadRequest(`user ${user2} is already in room`);
         const [bx, by, sx, sy] = this.resetRoom();
         const room_id = await this.rooms.createRoom(user1, user2, bx, by, sx, sy);
         await this.users.setUserRoom(user1, room_id);
