@@ -23,9 +23,24 @@ export class EngineController
             console.log(' <<<', message);
     }
 
+    BadRequest(message: string)
+    {
+        if (this.VERBOSE_RESPONSE)
+            console.log(' <<< 400:', message);
+        throw new BadRequestException(message);
+    }
+
+    asInt(v: any): number
+    {
+        if (!(/^\d+$/.test(v)))
+            this.BadRequest(v);
+        return parseInt(v);
+    }
+
     @Put('start/:id')
     async createRoom(@Param('id') id: number, @Res() response: Response)
     {
+        id = this.asInt(id);
         this.printRequest('starting game', id);
         await this.engineService.startGame(id, response);
         //this.printResponse(content);
@@ -35,6 +50,7 @@ export class EngineController
     @Get('get/:room_id')
     async getRoomState(@Param('room_id') id: number, @Res() response: Response)
     {
+        id = this.asInt(id);
         this.printRequest('getting room info', id);
         const content = await this.engineService.getRoomState(id);
         this.printResponse(content);
@@ -45,8 +61,8 @@ export class EngineController
     async moveBoard(@Body() body, @Param('user_id') id: number, @Res() response: Response)
     {
         this.printRequest(`moving ${id}'s board to`, body);
-
-        const content = await this.engineService.moveBoard(id, 0.3);
+        id = this.asInt(id);
+        const content = await this.engineService.moveBoard(id, body.position);
         this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
     }
@@ -55,6 +71,7 @@ export class EngineController
     async exitRoom(@Param('user_id') id: number, @Res() response: Response)
     {
         this.printRequest(`user ${id} exiting room`);
+        id = this.asInt(id);
         const content = await this.engineService.exitRoom(id);
         this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));

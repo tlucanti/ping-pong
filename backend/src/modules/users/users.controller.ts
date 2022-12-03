@@ -24,6 +24,20 @@ export class UsersController
         return message;
     }
 
+    BadRequest(message: string)
+    {
+        if (this.VERBOSE_RESPONSE)
+            console.log(' <<< 400:', message);
+        throw new BadRequestException(message);
+    }
+
+    asInt(v: any): number
+    {
+        if (!(/^\d+$/.test(v)))
+            this.BadRequest(`expected number, got '${v}'`);
+        return parseInt(v);
+    }
+
     @Put('add')
     async addUser(@Body() body, @Res() response: Response)
     {
@@ -46,6 +60,7 @@ export class UsersController
     async getUserById(@Param('userid') id: number, @Res() response: Response)
     {
         this.printRequest('getting user', id);
+        id = this.asInt(id);
         const content = await this.usersService.getUserById(id);
         this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
