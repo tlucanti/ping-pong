@@ -62,7 +62,8 @@ export class EngineController
     {
         this.printRequest(`moving ${id}'s board to`, body);
         id = this.asInt(id);
-        const content = await this.engineService.moveBoard(id, body.position);
+        const position = this.asInt(body.position);
+        const content = await this.engineService.moveBoard(id, position);
         this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
     }

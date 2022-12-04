@@ -213,7 +213,9 @@ export class EngineService {
             },
             ball: {
                 posx: room.ballx,
-                posy: room.bally
+                posy: room.bally,
+                speedx: room.speedx,
+                speedy: room.speedy
             }
         };
     }
@@ -248,7 +250,12 @@ export class EngineService {
         user = user[0];
         if (user.room == -1)
             this.BadRequest(`user ${id} not in room`);
-        await this.users.setUserRoom(id, -1);
+        let room = await this.rooms.getRoomById(user.room);
+        room = room[0];
+        this.rooms.deleteRoomById(user.room);
+        this.users.setUserRoom(room.user1, -1);
+        this.users.setUserRoom(room.user2, -1);
+        return "ok";
     }
 
     async restartDatabase()
