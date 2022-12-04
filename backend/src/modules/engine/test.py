@@ -16,7 +16,8 @@ plt.xlim(0, 1)
 plt.ylim(0, 1)
 
 while True:
-    j = requests.get('http://localhost:3000/api/engine/get/1').json()
+    j = requests.get('http://localhost:3000/api/engine/get/23').json()
+    print(j)
     x = j['ball']['posx']
     y = j['ball']['posy']
     line1.set_ydata(y)

@@ -132,6 +132,8 @@ export class EngineService {
             this.next_user = user;
             this.next_response = response;
         } else {
+            if (this.next_user == user)
+                this.BadRequest(`user ${user} already in room`);
             const room_id = await this.createRoom(user, this.next_user);
             const content = { room_id: room_id };
             this.printResponse(content);

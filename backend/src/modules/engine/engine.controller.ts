@@ -33,15 +33,15 @@ export class EngineController
     asInt(v: any): number
     {
         if (!(/^\d+$/.test(v)))
-            this.BadRequest(v);
+            this.BadRequest(`expected number, got '${v}'`);
         return parseInt(v);
     }
 
     @Put('start/:id')
-    async createRoom(@Param('id') id: number, @Res() response: Response)
+    async startGame(@Param('id') id: number, @Res() response: Response)
     {
-        id = this.asInt(id);
         this.printRequest('starting game', id);
+        id = this.asInt(id);
         await this.engineService.startGame(id, response);
         //this.printResponse(content);
         //response.status(HttpStatus.OK).send(JSON.stringify(content));
@@ -50,8 +50,8 @@ export class EngineController
     @Get('get/:room_id')
     async getRoomState(@Param('room_id') id: number, @Res() response: Response)
     {
-        id = this.asInt(id);
         this.printRequest('getting room info', id);
+        id = this.asInt(id);
         const content = await this.engineService.getRoomState(id);
         this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
