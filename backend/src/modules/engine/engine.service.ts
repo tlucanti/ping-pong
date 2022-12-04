@@ -2,18 +2,79 @@ import { Injectable, BadRequestException, NotAcceptableException, HttpStatus } f
 import { UsersDB } from '../../database/UsersDB'
 import { RoomsDB } from '../../database/RoomsDB'
 
-function trunc(a)
-{
-    if (a < 0)
-        return 0
-    else if (a > 1)
-        return 1;
-    return a;
-}
+type RoomState = {
+    ballx: number,
+    bally: number,
+    pos1: number,
+    pos2: number,
+    speedx: number,
+    speedy: number,
+    score1: number,
+    score2: number,
+    BOARD_SIZE: number
+};
 
-function rand(start, end)
-{
+function rand(start, end) {
     return Math.random() * (end - start) + start;
+};
+
+function resetRoom() {
+    let sx = rand(0.05, 0.1);
+    return [
+        0.5,
+        rand(0.2, 0.8),
+        sx,
+        0.2 - sx
+    ];
+};
+
+function updateRoomSingle(room: RoomState): RoomState
+{
+    let x = room.ballx + room.speedx;
+    let y = room.bally + room.speedy;
+    let sx = room.speedx;
+    let sy = room.speedy;
+    let score1 = room.score1;
+    let score2 = room.score2;
+    if (y > 1) {
+        y = 2 - y;
+        sy = -sy;
+    } else if (y < 0) {
+        y = -y;
+        sy = -sy
+    }
+    if (x > 1) {
+        if (Math.abs(room.pos1 - y) < room.BOARD_SIZE) {
+            ++score1;
+            [x, y, sx, sy] = resetRoom();
+        } else {
+            x = 2 - x;
+            sx = -sx;
+        }
+    } else if (x < 0) {
+        if (Math.abs(room.pos2 - y) < room.BOARD_SIZE) {
+            ++score2;
+            [x, y, sx, sy] = resetRoom();
+        } else {
+            x = -x;
+            sx = -sx;
+        }
+    }
+    /* console.log(x.toFixed(2),
+                y.toFixed(2),
+                sx.toFixed(2),
+                sy.toFixed(2),
+                room.pos1.toFixed(2),
+                room.pos2.toFixed(2),
+                score1,
+                score2); */
+    room.ballx = x;
+    room.bally = y;
+    room.speedx = sx;
+    room.speedy = sy;
+    room.score1 = score1;
+    room.score2 = score2;
+    return room;
 }
 
 @Injectable()
@@ -21,7 +82,7 @@ export class EngineService {
 
     users: any;
     rooms: any;
-    UPDATE_FREQUENCY: number = 1000;
+    UPDATE_FREQUENCY: number = 100;
     BOARD_SIZE: number = 0.1;
     VERBOSE_RESPONSE: boolean = true;
     next_user: number;
@@ -65,59 +126,35 @@ export class EngineService {
     async updateState()
     {
         const rooms = await this.rooms.getAllRooms();
+        let arg: RoomState = {
+            ballx: 0,
+            bally: 0,
+            pos1: 0,
+            pos2: 0,
+            speedx: 0,
+            speedy: 0,
+            score1: 0,
+            score2: 0,
+            BOARD_SIZE: this.BOARD_SIZE
+        };
         for (const room of rooms) {
-            let x = room.ballx + room.speedx;
-            let y = room.bally + room.speedy;
-            let sx = room.speedx;
-            let sy = room.speedy;
-            let score1 = room.score1;
-            let score2 = room.score2;
-            if (y > 1) {
-                y = 2 - y;
-                sy = -sy;
-            } else if (y < 0) {
-                y = -y;
-                sy = -sy
-            }
-            if (x > 1) {
-                if (Math.abs(room.pos1 - y) < this.BOARD_SIZE) {
-                    ++score1;
-                    [x, y, sx, sy] = this.resetRoom();
-                } else {
-                    x = 2 - x;
-                    sx = -sx;
-                }
-            } else if (x < 0) {
-                if (Math.abs(room.po2 - y) < this.BOARD_SIZE) {
-                    ++score2;
-                    [x, y, sx, sy] = this.resetRoom();
-                } else {
-                    x = -x;
-                    sx = -sx;
-                }
-            }
-            /* console.log(x.toFixed(2),
-                        y.toFixed(2),
-                        sx.toFixed(2),
-                        sy.toFixed(2),
-                        room.pos1.toFixed(2),
-                        room.pos2.toFixed(2),
-                        score1,
-                        score2); */
-            this.rooms.setRoomState(room.id, x, y, sx, sy, score1, score2);
+            arg.ballx = room.ballx;
+            arg.bally = room.bally;
+            arg.pos1 = room.pos1;
+            arg.pos2 = room.pos2;
+            arg.speedx = room.speedx;
+            arg.speedy = room.speedy;
+            arg.score1 = room.score1;
+            arg.score2 = room.score2;
+            updateRoomSingle(arg);
+            this.rooms.setRoomState(room.id,
+                                    arg.ballx,
+                                    arg.bally,
+                                    arg.speedx,
+                                    arg.speedy,
+                                    arg.score1,
+                                    arg.score2);
         }
-    }
-
-
-    resetRoom()
-    {
-        let sx = rand(0.05, 0.1);
-        return [
-            0.5,
-            rand(0.2, 0.8),
-            sx,
-            0.2 - sx
-        ];
     }
 
     async startGame(user: number, response)
@@ -150,7 +187,7 @@ export class EngineService {
         let u2 = await this.users.getUserById(user2);
         u1 = u1[0];
         u2 = u2[0];
-        const [bx, by, sx, sy] = this.resetRoom();
+        const [bx, by, sx, sy] = resetRoom();
         const room_id = await this.rooms.createRoom(user1, user2, bx, by, sx, sy);
         await this.users.setUserRoom(user1, room_id);
         await this.users.setUserRoom(user2, room_id);
@@ -212,5 +249,11 @@ export class EngineService {
         if (user.room == -1)
             this.BadRequest(`user ${id} not in room`);
         await this.users.setUserRoom(id, -1);
+    }
+
+    async restartDatabase()
+    {
+        this.users.reset();
+        this.rooms.reset();
     }
 }

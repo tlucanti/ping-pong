@@ -79,5 +79,12 @@ export class UsersDB
             update users set room = ${room} where id = ${id}
         `);
     }
+
+    async reset()
+    {
+        await this._db.query(`
+            delete from users
+        `);
+    }
 }
 

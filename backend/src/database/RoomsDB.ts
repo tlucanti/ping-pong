@@ -99,5 +99,12 @@ export class RoomsDB
             where id = ${room_id}
         `);
     }
+
+    async reset()
+    {
+        await this._db.query(`
+            delete from rooms
+        `);
+    }
 }
 

@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Res, HttpStatus,
-    BadRequestException, Put } from '@nestjs/common';
+    BadRequestException, Put, Delete } from '@nestjs/common';
 import { EngineService } from './engine.service';
 import { Response } from 'express';
 
@@ -67,7 +67,7 @@ export class EngineController
         response.status(HttpStatus.OK).send(JSON.stringify(content));
     }
 
-    @Post('exit_room/:user_id')
+    @Delete('exit_room/:user_id')
     async exitRoom(@Param('user_id') id: number, @Res() response: Response)
     {
         this.printRequest(`user ${id} exiting room`);
@@ -75,5 +75,14 @@ export class EngineController
         const content = await this.engineService.exitRoom(id);
         this.printResponse(content);
         response.status(HttpStatus.OK).send(JSON.stringify(content));
+    }
+
+    @Get('reset')
+    async restartDatabase(@Res() response: Response)
+    {
+        this.printRequest('resetting rooms');
+        this.engineService.restartDatabase();
+        this.printResponse("ok")
+        response.status(HttpStatus.OK).send("ok");
     }
 }
