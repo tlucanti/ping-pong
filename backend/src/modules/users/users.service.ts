@@ -24,12 +24,12 @@ export class UsersService {
 
     async addUser(username: string, password_hash: string)
     {
-        username = username.trim();
-        password_hash = password_hash.trim();
         if (username === undefined)
             this.BadRequest('field (username) expected');
         if (password_hash === undefined)
             this.BadRequest('field (password_hash) expected');
+        username = username.trim();
+        password_hash = password_hash.trim();
         if (username.length > this.USERNAME_LENGTH)
             this.BadRequest('username length too big');
         if (password_hash.length > this.USER_PASSWORD_LENGTH)

@@ -258,7 +258,7 @@ export class EngineService {
         return "ok";
     }
 
-    async restartDatabase()
+    async resetDatabase()
     {
         this.users.reset();
         this.rooms.reset();

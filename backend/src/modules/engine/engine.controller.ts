@@ -79,10 +79,10 @@ export class EngineController
     }
 
     @Get('reset')
-    async restartDatabase(@Res() response: Response)
+    async resetDatabase(@Res() response: Response)
     {
         this.printRequest('resetting rooms');
-        this.engineService.restartDatabase();
+        this.engineService.resetDatabase();
         this.printResponse("ok")
         response.status(HttpStatus.OK).send("ok");
     }
